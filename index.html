@@ -3,60 +3,19 @@
 <head>
 <meta charset="UTF-8">
 
-<script>
-/* ===== YouTube動画ID一覧 ===== */
-const youtubeVideos = [
-  "_ByNEL0Ton4",
-  "_k-5U7IeK8g",
-  "2tgHBRFHMm8",
-  "3KZ20aH_Oq4",
-  "5uZa3-RMFos",
-  "6S4qvf97cbQ",
-  "89vRm9bb9_c",
-  "AD4-Z-ONsIc",
-  "AeMUdOPFcXI",
-  "B_Sc1v1qR-g",
-  "bdUbACCWmoY",
-  "DjdUEyjx8GM",
-  "DnrgCsF1nAM",
-  "fl0YqYWGvd8",
-  "fndY3LREfdE",
-  "gFRtAAmiFbE",
-  "GrEEoEmmrKs",
-  "GsD9QQEKSzQ",
-  "hBaHx5WdnbQ",
-  "HjRZNBm1kms",
-  "iCxfe27HpaY",
-  "JGyGoXlKZmw",
-  "jLZ_T91paAU",
-  "lsxYH2XQQCg",
-  "MwcMURMzJ7A",
-  "n1TtSZ7z7c0",
-  "P3bq6nGkpnE",
-  "Pcj4xeEgbj8",
-  "qYnCG4J26d8",
-  "rB_nzP76ktc",
-  "RT_yg_qsK_M",
-  "s--MDmshT3I",
-  "ucfAqkh8c50",
-  "Xn7YQxxC5R0",
-  "xPgeZzojY5o",
-  "z1MErdsqsw8",
-  "zKOa2NAlxXw",
-  "ZpzNv_hNxPE",
-  "ZRUh9gNk8-g"		/* 最後・消すな */
-];
-/* ========================= */
-</script>
-
 <style>
+
 body{
   margin:0;
   background:#000;
   overflow:hidden;
+  font-family:sans-serif;
 }
 
-/* 2x2 */
+/* =======================
+   2x2 グリッド
+======================= */
+
 .container{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -67,31 +26,67 @@ body{
 .cell{
   position:relative;
   overflow:hidden;
+  background:#111;
 }
 
-/* YouTube iframe */
+/* =======================
+   YouTube iframe
+======================= */
+
 iframe{
   width:100%;
   height:100%;
   border:none;
-  pointer-events:none; /* ← クリックを親に通す */
 }
 
-/* ファイル名表示 */
-.filename{
+/* =======================
+   情報表示
+======================= */
+
+.info{
   position:absolute;
-  bottom:5px;
   left:5px;
+  bottom:5px;
   background:rgba(0,0,0,0.6);
   color:#fff;
-  padding:2px 6px;
+  padding:4px 8px;
   font-size:12px;
   display:none;
+  z-index:10;
 }
 
-.cell:hover .filename{
+.cell:hover .info{
   display:block;
 }
+
+/* =======================
+   上半分 / 下半分クリック
+======================= */
+
+.clickTop,
+.clickBottom{
+  position:absolute;
+  left:0;
+  width:100%;
+  z-index:20;
+  cursor:pointer;
+}
+
+.clickTop{
+  top:0;
+  height:50%;
+}
+
+.clickBottom{
+  bottom:0;
+  height:50%;
+}
+
+/* デバッグ用
+.clickTop{ background:rgba(255,0,0,0.1); }
+.clickBottom{ background:rgba(0,0,255,0.1); }
+*/
+
 </style>
 </head>
 
@@ -99,65 +94,276 @@ iframe{
 
 <div class="container">
 
-  <div class="cell" onclick="next('A')">
-    <iframe id="frameA"></iframe>
-    <div class="filename" id="nameA"></div>
+  <!-- A -->
+  <div class="cell">
+
+    <iframe id="frameA" allow="autoplay"></iframe>
+
+    <div class="clickTop"
+         onclick="prev('A')"></div>
+
+    <div class="clickBottom"
+         onclick="next('A')"></div>
+
+    <div class="info" id="infoA"></div>
+
   </div>
 
-  <div class="cell" onclick="next('B')">
-    <iframe id="frameB"></iframe>
-    <div class="filename" id="nameB"></div>
+  <!-- B -->
+  <div class="cell">
+
+    <iframe id="frameB" allow="autoplay"></iframe>
+
+    <div class="clickTop"
+         onclick="prev('B')"></div>
+
+    <div class="clickBottom"
+         onclick="next('B')"></div>
+
+    <div class="info" id="infoB"></div>
+
   </div>
 
-  <div class="cell" onclick="next('C')">
-    <iframe id="frameC"></iframe>
-    <div class="filename" id="nameC"></div>
+  <!-- C -->
+  <div class="cell">
+
+    <iframe id="frameC" allow="autoplay"></iframe>
+
+    <div class="clickTop"
+         onclick="prev('C')"></div>
+
+    <div class="clickBottom"
+         onclick="next('C')"></div>
+
+    <div class="info" id="infoC"></div>
+
   </div>
 
-  <div class="cell" onclick="next('D')">
-    <iframe id="frameD"></iframe>
-    <div class="filename" id="nameD"></div>
+  <!-- D -->
+  <div class="cell">
+
+    <iframe id="frameD" allow="autoplay"></iframe>
+
+    <div class="clickTop"
+         onclick="prev('D')"></div>
+
+    <div class="clickBottom"
+         onclick="next('D')"></div>
+
+    <div class="info" id="infoD"></div>
+
   </div>
 
 </div>
 
 <script>
 
-let index = {
-  A:0,
-  B:1,
-  C:2,
-  D:3
+/* ==========================================
+   プレイリスト
+   Shortsも普通動画もOK
+========================================== */
+
+const playlists = {
+
+  A:[
+  "rB_nzP76ktc",
+  "RT_yg_qsK_M",
+  "s--MDmshT3I",
+  "ucfAqkh8c50",
+  "Xn7YQxxC5R0",
+  "xPgeZzojY5o",
+  "z1MErdsqsw8",
+  "zKOa2NAlxXw",
+  "ZpzNv_hNxPE",
+  "ZRUh9gNk8-g"		/* 最後・消すな */
+  ],
+
+  B:[
+  "_ByNEL0Ton4",
+  "_k-5U7IeK8g",
+  "2tgHBRFHMm8",
+  "3KZ20aH_Oq4",
+  "5uZa3-RMFos",
+  "6S4qvf97cbQ",
+  "89vRm9bb9_c",
+  "AD4-Z-ONsIc",
+  "P3bq6nGkpnE",
+  "Pcj4xeEgbj8"		/* 最後・消すな */
+  ],
+
+  C:[
+  "qYnCG4J26d8",
+  "AeMUdOPFcXI",
+  "B_Sc1v1qR-g",
+  "bdUbACCWmoY",
+  "DjdUEyjx8GM",
+  "DnrgCsF1nAM",
+  "fl0YqYWGvd8",
+  "fndY3LREfdE",
+  "gFRtAAmiFbE"		/* 最後・消すな */
+  ],
+
+  D:[
+  "GrEEoEmmrKs",
+  "GsD9QQEKSzQ",
+  "hBaHx5WdnbQ",
+  "HjRZNBm1kms",
+  "iCxfe27HpaY",
+  "JGyGoXlKZmw",
+  "jLZ_T91paAU",
+  "lsxYH2XQQCg",
+  "MwcMURMzJ7A",
+  "n1TtSZ7z7c0"		/* 最後・消すな */
+  ]
+
 };
 
-/* iframe更新 */
+/* ==========================================
+   現在位置
+========================================== */
+
+let index = {
+  A:0,
+  B:0,
+  C:0,
+  D:0
+};
+
+/* ==========================================
+   ランダム初期化
+========================================== */
+
+["A","B","C","D"].forEach(type => {
+
+  index[type] =
+    Math.floor(Math.random() *
+    playlists[type].length);
+
+});
+
+/* ==========================================
+   iframe 更新
+========================================== */
+
 function update(type){
 
-  const videoId = youtubeVideos[index[type]];
+  const list = playlists[type];
+
+  const videoId = list[index[type]];
+
+  /* hover中だけ操作バー表示 */
+  const controls = 0;
+
+  /* 最初だけ音ON */
+  const mute = (type === "A") ? 0 : 1;
 
   const url =
-    `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+    `https://www.youtube.com/embed/${videoId}`
+    + `?autoplay=1`
+    + `&mute=${mute}`
+    + `&loop=1`
+    + `&playlist=${videoId}`
+    + `&controls=${controls}`
+    + `&rel=0`
+    + `&playsinline=1`;
 
-  document.getElementById("frame"+type).src = url;
+  document.getElementById(
+    "frame"+type).src = url;
 
-  document.getElementById("name"+type).textContent =
-    videoId;
+  document.getElementById(
+    "info"+type).textContent =
+    `${type} : ${videoId}`;
+
 }
 
-/* 次へ */
+/* ==========================================
+   次
+========================================== */
+
 function next(type){
 
   index[type]++;
 
-  if(index[type] >= youtubeVideos.length){
+  if(index[type] >= playlists[type].length){
     index[type] = 0;
   }
 
   update(type);
+
 }
 
-/* 初期化 */
-["A","B","C","D"].forEach(update);
+/* ==========================================
+   前
+========================================== */
+
+function prev(type){
+
+  index[type]--;
+
+  if(index[type] < 0){
+    index[type] =
+      playlists[type].length - 1;
+  }
+
+  update(type);
+
+}
+
+/* ==========================================
+   初期化
+========================================== */
+
+["A","B","C","D"].forEach(type => {
+  update(type);
+});
+
+/* ==========================================
+   一定時間ごとランダム変更
+========================================== */
+
+setInterval(() => {
+
+  const types = ["A","B","C","D"];
+
+  const type =
+    types[Math.floor(Math.random()*4)];
+
+  const max =
+    playlists[type].length;
+
+  index[type] =
+    Math.floor(Math.random()*max);
+
+  update(type);
+
+}, 15000);
+
+/* ==========================================
+   マウスオーバーで操作バー表示
+========================================== */
+
+document.querySelectorAll(".cell")
+.forEach(cell => {
+
+  cell.addEventListener("mouseenter", () => {
+
+    const iframe =
+      cell.querySelector("iframe");
+
+    iframe.style.pointerEvents = "auto";
+
+  });
+
+  cell.addEventListener("mouseleave", () => {
+
+    const iframe =
+      cell.querySelector("iframe");
+
+    iframe.style.pointerEvents = "none";
+
+  });
+
+});
 
 </script>
 
