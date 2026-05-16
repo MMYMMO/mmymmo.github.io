@@ -3,6 +3,64 @@
 <head>
 <meta charset="UTF-8">
 
+<script>
+/* ==========================================
+   設定
+========================================== */
+/*
+  0 なら自動切替しない
+  15000 なら15秒ごと
+*/
+const CHANGE_INTERVAL = 0;
+/* ==========================================
+   共通プレイリスト
+========================================== */
+
+const playlist = [
+
+  "_ByNEL0Ton4",
+  "_k-5U7IeK8g",
+  "2tgHBRFHMm8",
+  "3KZ20aH_Oq4",
+  "5uZa3-RMFos",
+  "6S4qvf97cbQ",
+  "89vRm9bb9_c",
+  "AeMUdOPFcXI",
+  "B_Sc1v1qR-g",
+  "bdUbACCWmoY",
+  "DjdUEyjx8GM",
+  "DnrgCsF1nAM",
+  "fl0YqYWGvd8",
+  "fndY3LREfdE",
+  "gFRtAAmiFbE",
+  "GrEEoEmmrKs",
+  "GsD9QQEKSzQ",
+  "hBaHx5WdnbQ",
+  "HjRZNBm1kms",
+  "iCxfe27HpaY",
+  "JGyGoXlKZmw",
+  "jLZ_T91paAU",
+  "lsxYH2XQQCg",
+  "MwcMURMzJ7A",
+  "n1TtSZ7z7c0",
+  "P3bq6nGkpnE",
+  "Pcj4xeEgbj8",
+  "qYnCG4J26d8",
+  "rB_nzP76ktc",
+  "RT_yg_qsK_M",
+  "s--MDmshT3I",
+  "ucfAqkh8c50",
+  "Xn7YQxxC5R0",
+  "xPgeZzojY5o",
+  "z1MErdsqsw8",
+  "zKOa2NAlxXw",
+  "ZpzNv_hNxPE",
+  "ZRUh9gNk8-g"			/* 最終行は末尾に,が入らないので注意！！ */
+
+
+];
+</script>
+
 <style>
 
 body{
@@ -153,68 +211,6 @@ iframe{
 </div>
 
 <script>
-
-/* ==========================================
-   設定
-========================================== */
-
-/*
-  0 なら自動切替しない
-  15000 なら15秒ごと
-*/
-const CHANGE_INTERVAL = 0;
-
-/* ==========================================
-   共通プレイリスト
-========================================== */
-
-const playlist = [
-
-  "rB_nzP76ktc",
-  "RT_yg_qsK_M",
-  "s--MDmshT3I",
-  "ucfAqkh8c50",
-  "Xn7YQxxC5R0",
-  "xPgeZzojY5o",
-  "z1MErdsqsw8",
-  "zKOa2NAlxXw",
-  "ZpzNv_hNxPE",
-  "ZRUh9gNk8-g",
-
-  "_ByNEL0Ton4",
-  "_k-5U7IeK8g",
-  "2tgHBRFHMm8",
-  "3KZ20aH_Oq4",
-  "5uZa3-RMFos",
-  "6S4qvf97cbQ",
-  "89vRm9bb9_c",
-  "AD4-Z-ONsIc",
-  "P3bq6nGkpnE",
-  "Pcj4xeEgbj8",
-
-  "qYnCG4J26d8",
-  "AeMUdOPFcXI",
-  "B_Sc1v1qR-g",
-  "bdUbACCWmoY",
-  "DjdUEyjx8GM",
-  "DnrgCsF1nAM",
-  "fl0YqYWGvd8",
-  "fndY3LREfdE",
-  "gFRtAAmiFbE",
-
-  "GrEEoEmmrKs",
-  "GsD9QQEKSzQ",
-  "hBaHx5WdnbQ",
-  "HjRZNBm1kms",
-  "iCxfe27HpaY",
-  "JGyGoXlKZmw",
-  "jLZ_T91paAU",
-  "lsxYH2XQQCg",
-  "MwcMURMzJ7A",
-  "n1TtSZ7z7c0"
-
-];
-
 /* ==========================================
    現在位置
 ========================================== */
