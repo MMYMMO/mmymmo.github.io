@@ -4,18 +4,13 @@
 <meta charset="UTF-8">
 
 <style>
-
 body{
   margin:0;
   background:#000;
   overflow:hidden;
-  font-family:sans-serif;
 }
 
-/* =======================
-   2x2 グリッド
-======================= */
-
+/* 2x2 */
 .container{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -26,67 +21,31 @@ body{
 .cell{
   position:relative;
   overflow:hidden;
-  background:#111;
 }
 
-/* =======================
-   YouTube iframe
-======================= */
-
+/* YouTube iframe */
 iframe{
   width:100%;
   height:100%;
   border:none;
+  pointer-events:none; /* ← クリックを親に通す */
 }
 
-/* =======================
-   情報表示
-======================= */
-
-.info{
+/* ファイル名表示 */
+.filename{
   position:absolute;
-  left:5px;
   bottom:5px;
+  left:5px;
   background:rgba(0,0,0,0.6);
   color:#fff;
-  padding:4px 8px;
+  padding:2px 6px;
   font-size:12px;
   display:none;
-  z-index:10;
 }
 
-.cell:hover .info{
+.cell:hover .filename{
   display:block;
 }
-
-/* =======================
-   上半分 / 下半分クリック
-======================= */
-
-.clickTop,
-.clickBottom{
-  position:absolute;
-  left:0;
-  width:100%;
-  z-index:20;
-  cursor:pointer;
-}
-
-.clickTop{
-  top:0;
-  height:50%;
-}
-
-.clickBottom{
-  bottom:0;
-  height:50%;
-}
-
-/* デバッグ用
-.clickTop{ background:rgba(255,0,0,0.1); }
-.clickBottom{ background:rgba(0,0,255,0.1); }
-*/
-
 </style>
 </head>
 
@@ -94,249 +53,90 @@ iframe{
 
 <div class="container">
 
-  <!-- A -->
-  <div class="cell">
-
-    <iframe id="frameA" allow="autoplay"></iframe>
-
-    <div class="clickTop"
-         onclick="prev('A')"></div>
-
-    <div class="clickBottom"
-         onclick="next('A')"></div>
-
-    <div class="info" id="infoA"></div>
-
+  <div class="cell" onclick="next('A')">
+    <iframe id="frameA"></iframe>
+    <div class="filename" id="nameA"></div>
   </div>
 
-  <!-- B -->
-  <div class="cell">
-
-    <iframe id="frameB" allow="autoplay"></iframe>
-
-    <div class="clickTop"
-         onclick="prev('B')"></div>
-
-    <div class="clickBottom"
-         onclick="next('B')"></div>
-
-    <div class="info" id="infoB"></div>
-
+  <div class="cell" onclick="next('B')">
+    <iframe id="frameB"></iframe>
+    <div class="filename" id="nameB"></div>
   </div>
 
-  <!-- C -->
-  <div class="cell">
-
-    <iframe id="frameC" allow="autoplay"></iframe>
-
-    <div class="clickTop"
-         onclick="prev('C')"></div>
-
-    <div class="clickBottom"
-         onclick="next('C')"></div>
-
-    <div class="info" id="infoC"></div>
-
+  <div class="cell" onclick="next('C')">
+    <iframe id="frameC"></iframe>
+    <div class="filename" id="nameC"></div>
   </div>
 
-  <!-- D -->
-  <div class="cell">
-
-    <iframe id="frameD" allow="autoplay"></iframe>
-
-    <div class="clickTop"
-         onclick="prev('D')"></div>
-
-    <div class="clickBottom"
-         onclick="next('D')"></div>
-
-    <div class="info" id="infoD"></div>
-
+  <div class="cell" onclick="next('D')">
+    <iframe id="frameD"></iframe>
+    <div class="filename" id="nameD"></div>
   </div>
 
 </div>
 
 <script>
 
-/* ==========================================
-   プレイリスト
-   Shortsも普通動画もOK
-========================================== */
+/* ===== YouTube動画ID一覧 ===== */
 
-const playlists = {
+const youtubeVideos = [
 
-  A:[
-    "dQw4w9WgXcQ",
-    "ysz5S6PUM-U",
-    "ScMzIvxBSi4"
-  ],
+  "iAQBsAgC",
+  "rB_nzP76ktc",
+  "qYnCG4J26d8",
+  "zKOa2NAlxXw",
+  "xPgeZzojY5o",
+  "AeMUdOPFcXI",
+  "lsxYH2XQQCg",
+  "Pcj4xeEgbj8",
+  "3KZ20aH_Oq4",
+  "B_Sc1v1qR-g",
+  "n1TtSZ7z7c0",
+  "ZRUh9gNk8-g",
+  "Xn7YQxxC5R0",
+  "DjdUEyjx8GM",
+  "hBaHx5WdnbQ",
+  "6S4qvf97cbQ"
 
-  B:[
-    "aqz-KE-bpKQ",
-    "M7lc1UVf-VE",
-    "5qap5aO4i9A"
-  ],
+];
 
-  C:[
-    "LXb3EKWsInQ",
-    "hHW1oY26kxQ",
-    "kXYiU_JCYtU"
-  ],
-
-  D:[
-    "9bZkp7q19f0",
-    "RgKAFK5djSk",
-    "60ItHLz5WEA"
-  ]
-
-};
-
-/* ==========================================
-   現在位置
-========================================== */
+/* ========================= */
 
 let index = {
   A:0,
-  B:0,
-  C:0,
-  D:0
+  B:1,
+  C:2,
+  D:3
 };
 
-/* ==========================================
-   ランダム初期化
-========================================== */
-
-["A","B","C","D"].forEach(type => {
-
-  index[type] =
-    Math.floor(Math.random() *
-    playlists[type].length);
-
-});
-
-/* ==========================================
-   iframe 更新
-========================================== */
-
+/* iframe更新 */
 function update(type){
 
-  const list = playlists[type];
-
-  const videoId = list[index[type]];
-
-  /* hover中だけ操作バー表示 */
-  const controls = 0;
-
-  /* 最初だけ音ON */
-  const mute = (type === "A") ? 0 : 1;
+  const videoId = youtubeVideos[index[type]];
 
   const url =
-    `https://www.youtube.com/embed/${videoId}`
-    + `?autoplay=1`
-    + `&mute=${mute}`
-    + `&loop=1`
-    + `&playlist=${videoId}`
-    + `&controls=${controls}`
-    + `&rel=0`
-    + `&playsinline=1`;
+    `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
 
-  document.getElementById(
-    "frame"+type).src = url;
+  document.getElementById("frame"+type).src = url;
 
-  document.getElementById(
-    "info"+type).textContent =
-    `${type} : ${videoId}`;
-
+  document.getElementById("name"+type).textContent =
+    videoId;
 }
 
-/* ==========================================
-   次
-========================================== */
-
+/* 次へ */
 function next(type){
 
   index[type]++;
 
-  if(index[type] >= playlists[type].length){
+  if(index[type] >= youtubeVideos.length){
     index[type] = 0;
   }
 
   update(type);
-
 }
 
-/* ==========================================
-   前
-========================================== */
-
-function prev(type){
-
-  index[type]--;
-
-  if(index[type] < 0){
-    index[type] =
-      playlists[type].length - 1;
-  }
-
-  update(type);
-
-}
-
-/* ==========================================
-   初期化
-========================================== */
-
-["A","B","C","D"].forEach(type => {
-  update(type);
-});
-
-/* ==========================================
-   一定時間ごとランダム変更
-========================================== */
-
-setInterval(() => {
-
-  const types = ["A","B","C","D"];
-
-  const type =
-    types[Math.floor(Math.random()*4)];
-
-  const max =
-    playlists[type].length;
-
-  index[type] =
-    Math.floor(Math.random()*max);
-
-  update(type);
-
-}, 15000);
-
-/* ==========================================
-   マウスオーバーで操作バー表示
-========================================== */
-
-document.querySelectorAll(".cell")
-.forEach(cell => {
-
-  cell.addEventListener("mouseenter", () => {
-
-    const iframe =
-      cell.querySelector("iframe");
-
-    iframe.style.pointerEvents = "auto";
-
-  });
-
-  cell.addEventListener("mouseleave", () => {
-
-    const iframe =
-      cell.querySelector("iframe");
-
-    iframe.style.pointerEvents = "none";
-
-  });
-
-});
+/* 初期化 */
+["A","B","C","D"].forEach(update);
 
 </script>
 
