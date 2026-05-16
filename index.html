@@ -37,6 +37,7 @@ iframe{
   width:100%;
   height:100%;
   border:none;
+  pointer-events:none;
 }
 
 /* =======================
@@ -81,11 +82,6 @@ iframe{
   bottom:0;
   height:50%;
 }
-
-/* デバッグ用
-.clickTop{ background:rgba(255,0,0,0.1); }
-.clickBottom{ background:rgba(0,0,255,0.1); }
-*/
 
 </style>
 </head>
@@ -159,13 +155,21 @@ iframe{
 <script>
 
 /* ==========================================
-   プレイリスト
-   Shortsも普通動画もOK
+   設定
 ========================================== */
 
-const playlists = {
+/*
+  0 なら自動切替しない
+  15000 なら15秒ごと
+*/
+const CHANGE_INTERVAL = 0;
 
-  A:[
+/* ==========================================
+   共通プレイリスト
+========================================== */
+
+const playlist = [
+
   "rB_nzP76ktc",
   "RT_yg_qsK_M",
   "s--MDmshT3I",
@@ -175,10 +179,8 @@ const playlists = {
   "z1MErdsqsw8",
   "zKOa2NAlxXw",
   "ZpzNv_hNxPE",
-  "ZRUh9gNk8-g"		/* 最後・消すな */
-  ],
+  "ZRUh9gNk8-g",
 
-  B:[
   "_ByNEL0Ton4",
   "_k-5U7IeK8g",
   "2tgHBRFHMm8",
@@ -188,10 +190,8 @@ const playlists = {
   "89vRm9bb9_c",
   "AD4-Z-ONsIc",
   "P3bq6nGkpnE",
-  "Pcj4xeEgbj8"		/* 最後・消すな */
-  ],
+  "Pcj4xeEgbj8",
 
-  C:[
   "qYnCG4J26d8",
   "AeMUdOPFcXI",
   "B_Sc1v1qR-g",
@@ -200,10 +200,8 @@ const playlists = {
   "DnrgCsF1nAM",
   "fl0YqYWGvd8",
   "fndY3LREfdE",
-  "gFRtAAmiFbE"		/* 最後・消すな */
-  ],
+  "gFRtAAmiFbE",
 
-  D:[
   "GrEEoEmmrKs",
   "GsD9QQEKSzQ",
   "hBaHx5WdnbQ",
@@ -213,10 +211,9 @@ const playlists = {
   "jLZ_T91paAU",
   "lsxYH2XQQCg",
   "MwcMURMzJ7A",
-  "n1TtSZ7z7c0"		/* 最後・消すな */
-  ]
+  "n1TtSZ7z7c0"
 
-};
+];
 
 /* ==========================================
    現在位置
@@ -237,7 +234,7 @@ let index = {
 
   index[type] =
     Math.floor(Math.random() *
-    playlists[type].length);
+    playlist.length);
 
 });
 
@@ -247,15 +244,12 @@ let index = {
 
 function update(type){
 
-  const list = playlists[type];
+  const videoId = playlist[index[type]];
 
-  const videoId = list[index[type]];
-
-  /* hover中だけ操作バー表示 */
   const controls = 0;
 
-  /* 最初だけ音ON */
-  const mute = (type === "A") ? 0 : 1;
+  /* 全画面デフォルト音声OFF */
+  const mute = 1;
 
   const url =
     `https://www.youtube.com/embed/${videoId}`
@@ -284,7 +278,7 @@ function next(type){
 
   index[type]++;
 
-  if(index[type] >= playlists[type].length){
+  if(index[type] >= playlist.length){
     index[type] = 0;
   }
 
@@ -302,7 +296,7 @@ function prev(type){
 
   if(index[type] < 0){
     index[type] =
-      playlists[type].length - 1;
+      playlist.length - 1;
   }
 
   update(type);
@@ -321,25 +315,27 @@ function prev(type){
    一定時間ごとランダム変更
 ========================================== */
 
-setInterval(() => {
+if(CHANGE_INTERVAL > 0){
 
-  const types = ["A","B","C","D"];
+  setInterval(() => {
 
-  const type =
-    types[Math.floor(Math.random()*4)];
+    const types = ["A","B","C","D"];
 
-  const max =
-    playlists[type].length;
+    const type =
+      types[Math.floor(Math.random()*4)];
 
-  index[type] =
-    Math.floor(Math.random()*max);
+    index[type] =
+      Math.floor(Math.random() *
+      playlist.length);
 
-  update(type);
+    update(type);
 
-}, 15000);
+  }, CHANGE_INTERVAL);
+
+}
 
 /* ==========================================
-   マウスオーバーで操作バー表示
+   マウスオーバー時だけ操作可能
 ========================================== */
 
 document.querySelectorAll(".cell")
