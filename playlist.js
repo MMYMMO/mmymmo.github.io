@@ -2,6 +2,7 @@ const playlist = [
 
   "s--MDmshT3I&　北海道 函館山 函館市街",
   "DnrgCsF1nAM&　山形 蔵王体育館前",
+  "owYeMn834xQ&　岩手 荒神神社",
   "z1MErdsqsw8&　福島 会津 湯野上温泉駅",
   "xPgeZzojY5o&　東京 東京駅皇居側丸の内中央口",
   "nu6NE55_X7A&　東京 港区 東京タワー",
