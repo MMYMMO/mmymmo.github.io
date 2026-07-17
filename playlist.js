@@ -4,7 +4,7 @@ const playlist = [
   "DnrgCsF1nAM&　山形 蔵王体育館前",
   "owYeMn834xQ&　岩手 荒神神社",
   "z1MErdsqsw8&　福島 会津 湯野上温泉駅",
-  "xPgeZzojY5o&　東京 東京駅皇居側丸の内中央口",
+  "ZN4gh5IOowM&　東京 東京駅皇居側丸の内中央口",
   "nu6NE55_X7A&　東京 港区 東京タワー",
   "xEXHHrdZXME&　東京 台東 三ノ輪交差点",
   "HjRZNBm1kms&　東京 浅草 浅草寺",
