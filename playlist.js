@@ -12,6 +12,7 @@ const playlist = [
   "MwcMURMzJ7A&　東京 浅草 アサヒビール本社 スカイツリー",
   "66w-y4i91hE&　東京 築地",
   "xdjEmXaf8o8&　東京 勝どき",
+  "Mk8f6sknL_4&　東京 東雲ジャンクション",
   "_ByNEL0Ton4&　東京 台場 有明",
   "_k-5U7IeK8g&　東京 芝浦 レインボーブリッジ",
   "hlbh4P0Mz8M&　東京 お台場 レインボーブリッジ",
