@@ -1,5 +1,6 @@
 const playlist = [
 
+  "jLm26eRhrWg&　日本 全国の今",
   "s--MDmshT3I&　北海道 函館山 函館市街",
   "DnrgCsF1nAM&　山形 蔵王体育館前",
   "xd3CzEF3XFQ&　岩手 荒神神社",
