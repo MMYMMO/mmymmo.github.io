@@ -63,6 +63,7 @@ const playlist = [
   "-7Gx7Qj9pWs&　愛知 名古屋駅",
   "ZpzNv_hNxPE&　石川 金沢 兼六園",
   "jLZ_T91paAU&　福井 新保 国道８号",
+  "i6luD8PP1Z0&　和歌山 南紀白浜",
   "lsxYH2XQQCg&　兵庫 淡路島モンキーパーク",
   "C3Ood13b4Sk&　山口 岩国 錦帯橋",
   "Pcj4xeEgbj8&　愛媛 瀬戸内 しまなみ海道／来島海峡大橋",
