@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FX Clock + YouTube</title>
+<script src="../playlist.js"></script>
+<script>
+/* 自動動画切替。0 = 無効 */
+const CHANGE_INTERVAL = 0;
+</script>
+<style>
+*{box-sizing:border-box}
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:#000;
+  overflow:hidden;
+  font-family:sans-serif;
+}
+
+/* 上から 時計 / 動画1 / 動画2 */
+.container{
+  display:grid;
+  grid-template-columns:1fr;
+  grid-template-rows:repeat(3,1fr);
+  width:100vw;
+  height:100vh;
+}
+
+.cell{
+  position:relative;
+  overflow:hidden;
+  background:#111;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:0;
+}
+
+/* 時計はFX_Clock.htmlそのものを表示 */
+.clock-cell iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  background:#101318;
+}
+
+/* YouTube */
+.video-cell iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  pointer-events:none;
+}
+
+/* 動画の上下クリック領域 */
+.clickTop,
+.clickBottom{
+  position:absolute;
+  left:0;
+  width:100%;
+  z-index:20;
+  cursor:pointer;
+}
+
+.clickTop{
+  top:0;
+  height:50%;
+}
+
+.clickBottom{
+  bottom:0;
+  height:50%;
+}
+
+.info{
+  position:absolute;
+  left:5px;
+  top:5px;
+  background:rgba(0,0,0,.6);
+  color:#fff;
+  padding:4px 8px;
+  font-size:12px;
+  display:none;
+  z-index:10;
+  pointer-events:none;
+}
+
+.video-cell:hover .info{display:block}
+
+@media (max-width:700px){
+  .info{font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 時計 -->
+  <div class="cell clock-cell">
+    <iframe
+      id="frameClock"
+      src="FX_Clock.html"
+      title="FX World Clock"
+      loading="eager">
+    </iframe>
+  </div>
+
+  <!-- 動画1 -->
+  <div class="cell video-cell">
+    <iframe id="frameB" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    <div class="clickTop" onclick="prev('B')"></div>
+    <div class="clickBottom" onclick="next('B')"></div>
+    <div class="info" id="infoB"></div>
+  </div>
+
+  <!-- 動画2 -->
+  <div class="cell video-cell">
+    <iframe id="frameC" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    <div class="clickTop" onclick="prev('C')"></div>
+    <div class="clickBottom" onclick="next('C')"></div>
+    <div class="info" id="infoC"></div>
+  </div>
+
+</div>
+
+<script>
+if (!Array.isArray(playlist) || playlist.length === 0) {
+  throw new Error('playlist.js に動画IDがありません。');
+}
+
+const index = {
+  B: 0,
+  C: Math.min(1, playlist.length - 1)
+};
+
+function randomIndex(exclude = -1) {
+  if (playlist.length <= 1) return 0;
+  let i;
+  do {
+    i = Math.floor(Math.random() * playlist.length);
+  } while (i === exclude);
+  return i;
+}
+
+/* 初期表示はB/Cで同じ動画にならないようにする */
+index.B = randomIndex();
+index.C = playlist.length >= 2 ? randomIndex(index.B) : index.B;
+
+function update(type) {
+  const videoId = playlist[index[type]];
+  const controls = 0;
+  const mute = 1;
+
+  const url =
+    `https://www.youtube.com/embed/${videoId}`
+    + `?autoplay=1`
+    + `&mute=${mute}`
+    + `&loop=1`
+    + `&playlist=${videoId}`
+    + `&controls=${controls}`
+    + `&rel=0`
+    + `&playsinline=1`;
+
+  document.getElementById(`frame${type}`).src = url;
+  document.getElementById(`info${type}`).textContent = `${type} : ${videoId}`;
+}
+
+function next(type) {
+  index[type] = (index[type] + 1) % playlist.length;
+  update(type);
+}
+
+function prev(type) {
+  index[type] = (index[type] - 1 + playlist.length) % playlist.length;
+  update(type);
+}
+
+['B','C'].forEach(update);
+
+/* 任意の自動切替 */
+if (CHANGE_INTERVAL > 0) {
+  setInterval(() => {
+    const types = ['B','C'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    index[type] = randomIndex(index[type]);
+    update(type);
+  }, CHANGE_INTERVAL);
+}
+</script>
+</body>
+</html>
