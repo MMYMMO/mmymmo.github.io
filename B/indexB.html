@@ -1,26 +1,32 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FX Clock + YouTube</title>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">
+/* ==========================================
+   共通プレイリスト
+========================================== */
 <script src="../playlist.js"></script>
 <script>
-/* 自動動画切替。0 = 無効 */
+/* ==========================================
+   設定
+========================================== */
+/*
+  0 なら自動切替しない 15000 なら15秒ごと
+*/
 const CHANGE_INTERVAL = 0;
+
 </script>
+
 <style>
-*{box-sizing:border-box}
-html,body{
-  width:100%;
-  height:100%;
+
+body{
   margin:0;
   background:#000;
   overflow:hidden;
   font-family:sans-serif;
 }
 
-/* 上から 時計 / 動画1 / 動画2 */
+/* =======================
+   1x3 グリッド
+======================= */
+
 .container{
   display:grid;
   grid-template-columns:1fr;
@@ -30,34 +36,56 @@ html,body{
 }
 
 .cell{
-  position:relative;
-  overflow:hidden;
-  background:#111;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:0;
+    position:relative;
+    overflow:hidden;
+    background:#111;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
-/* 時計はFX_Clock.htmlそのものを表示 */
-.clock-cell iframe{
-  width:100%;
-  height:100%;
-  border:0;
-  display:block;
-  background:#101318;
+iframe{
+    width:100%;
+    aspect-ratio:16/9;
+    border:none;
+    pointer-events:none;
 }
 
-/* YouTube */
-.video-cell iframe{
+/* =======================
+   YouTube iframe
+======================= */
+
+iframe{
   width:100%;
   height:100%;
-  border:0;
-  display:block;
+  border:none;
   pointer-events:none;
 }
 
-/* 動画の上下クリック領域 */
+/* =======================
+   情報表示
+======================= */
+
+.info{
+  position:absolute;
+  left:5px;
+  top:5px;
+  background:rgba(0,0,0,0.6);
+  color:#fff;
+  padding:4px 8px;
+  font-size:12px;
+  display:none;
+  z-index:10;
+}
+
+.cell:hover .info{
+  display:block;
+}
+
+/* =======================
+   上半分 / 下半分クリック
+======================= */
+
 .clickTop,
 .clickBottom{
   position:absolute;
@@ -77,39 +105,22 @@ html,body{
   height:50%;
 }
 
-.info{
-  position:absolute;
-  left:5px;
-  top:5px;
-  background:rgba(0,0,0,.6);
-  color:#fff;
-  padding:4px 8px;
-  font-size:12px;
-  display:none;
-  z-index:10;
-  pointer-events:none;
-}
-
-.video-cell:hover .info{display:block}
-
-@media (max-width:700px){
-  .info{font-size:10px}
-}
 </style>
 </head>
+
 <body>
+
 <div class="container">
 
-  <!-- 時計 -->
-  <div class="cell clock-cell">
-    <iframe
-      id="frameClock"
-      src="FX_Clock.html"
-      title="FX World Clock"
-      loading="eager">
-    </iframe>
+  <!-- A -->
+  <div class="cell">
+    <iframe id="frameA" allow="autoplay"></iframe>
+    <div class="clickTop"
+         onclick="prev('A')"></div>
+    <div class="clickBottom"
+         onclick="next('A')"></div>
+    <div class="info" id="infoA"></div>
   </div>
-
   <!-- B -->
   <div class="cell">
     <iframe id="frameB" allow="autoplay"></iframe>
@@ -119,7 +130,6 @@ html,body{
          onclick="next('B')"></div>
     <div class="info" id="infoB"></div>
   </div>
-
   <!-- C -->
   <div class="cell">
     <iframe id="frameC" allow="autoplay"></iframe>
@@ -145,7 +155,7 @@ let index = {
    ランダム初期化
 ========================================== */
 
-["B","C"].forEach(type => {
+["A","B","C"].forEach(type => {
 
   index[type] =
     Math.floor(Math.random() *
@@ -213,7 +223,7 @@ function prev(type){
    初期化
 ========================================== */
 
-["B","C"].forEach(type => {
+["A","B","C"].forEach(type => {
   update(type);
 });
 
