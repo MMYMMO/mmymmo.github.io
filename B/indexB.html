@@ -110,50 +110,60 @@ html,body{
     </iframe>
   </div>
 
-  <!-- 動画1 -->
-  <div class="cell video-cell">
-    <iframe id="frameB" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
-    <div class="clickTop" onclick="prev('B')"></div>
-    <div class="clickBottom" onclick="next('B')"></div>
+  <!-- B -->
+  <div class="cell">
+    <iframe id="frameB" allow="autoplay"></iframe>
+    <div class="clickTop"
+         onclick="prev('B')"></div>
+    <div class="clickBottom"
+         onclick="next('B')"></div>
     <div class="info" id="infoB"></div>
   </div>
 
-  <!-- 動画2 -->
-  <div class="cell video-cell">
-    <iframe id="frameC" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
-    <div class="clickTop" onclick="prev('C')"></div>
-    <div class="clickBottom" onclick="next('C')"></div>
+  <!-- C -->
+  <div class="cell">
+    <iframe id="frameC" allow="autoplay"></iframe>
+    <div class="clickTop"
+         onclick="prev('C')"></div>
+    <div class="clickBottom"
+         onclick="next('C')"></div>
     <div class="info" id="infoC"></div>
   </div>
-
 </div>
-
 <script>
-if (!Array.isArray(playlist) || playlist.length === 0) {
-  throw new Error('playlist.js に動画IDがありません。');
-}
+/* ==========================================
+   現在位置
+========================================== */
 
-const index = {
-  B: 0,
-  C: Math.min(1, playlist.length - 1)
+let index = {
+  A:0,
+  B:0,
+  C:0
 };
 
-function randomIndex(exclude = -1) {
-  if (playlist.length <= 1) return 0;
-  let i;
-  do {
-    i = Math.floor(Math.random() * playlist.length);
-  } while (i === exclude);
-  return i;
-}
+/* ==========================================
+   ランダム初期化
+========================================== */
 
-/* 初期表示はB/Cで同じ動画にならないようにする */
-index.B = randomIndex();
-index.C = playlist.length >= 2 ? randomIndex(index.B) : index.B;
+["B","C"].forEach(type => {
 
-function update(type) {
+  index[type] =
+    Math.floor(Math.random() *
+    playlist.length);
+
+});
+
+/* ==========================================
+   iframe 更新
+========================================== */
+
+function update(type){
+
   const videoId = playlist[index[type]];
+
   const controls = 0;
+
+  /* 全画面デフォルト音声OFF */
   const mute = 1;
 
   const url =
@@ -166,31 +176,80 @@ function update(type) {
     + `&rel=0`
     + `&playsinline=1`;
 
-  document.getElementById(`frame${type}`).src = url;
-  document.getElementById(`info${type}`).textContent = `${type} : ${videoId}`;
+  document.getElementById(
+    "frame"+type).src = url;
+
+  document.getElementById(
+    "info"+type).textContent =
+    `${type} : ${videoId}`;
+
 }
 
-function next(type) {
-  index[type] = (index[type] + 1) % playlist.length;
+/* ==========================================
+   次
+========================================== */
+function next(type){
+  index[type]++;
+  if(index[type] >= playlist.length){
+    index[type] = 0;
+  }
   update(type);
 }
 
-function prev(type) {
-  index[type] = (index[type] - 1 + playlist.length) % playlist.length;
+/* ==========================================
+   前
+========================================== */
+
+function prev(type){
+  index[type]--;
+  if(index[type] < 0){
+    index[type] =
+      playlist.length - 1;
+  }
   update(type);
 }
 
-['B','C'].forEach(update);
+/* ==========================================
+   初期化
+========================================== */
 
-/* 任意の自動切替 */
-if (CHANGE_INTERVAL > 0) {
+["B","C"].forEach(type => {
+  update(type);
+});
+
+/* ==========================================
+   一定時間ごとランダム変更
+========================================== */
+
+if(CHANGE_INTERVAL > 0){
   setInterval(() => {
-    const types = ['B','C'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    index[type] = randomIndex(index[type]);
+    const types = ["A","B","C"];
+    const type =
+      types[Math.floor(Math.random()*3)];
+    index[type] =
+      Math.floor(Math.random() *
+      playlist.length);
     update(type);
   }, CHANGE_INTERVAL);
 }
+
+/* ==========================================
+   マウスオーバー時だけ操作可能
+========================================== */
+
+document.querySelectorAll(".cell")
+.forEach(cell => {
+  cell.addEventListener("mouseenter", () => {
+    const iframe =
+      cell.querySelector("iframe");
+    iframe.style.pointerEvents = "auto";
+  });
+  cell.addEventListener("mouseleave", () => {
+    const iframe =
+      cell.querySelector("iframe");
+    iframe.style.pointerEvents = "none";
+  });
+});
+
 </script>
-</body>
-</html>
+</body></html>
