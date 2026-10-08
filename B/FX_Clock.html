@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FX World Clock</title>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 5;
+    background: #101318;
+    color: #e9edf2;
+    font-family: "Segoe UI", Meiryo, sans-serif;
+}
+.container {
+    width: min(1100px, 96vw);
+    margin: 0px auto;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-bottom: 10px;
+}
+h1 {
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+#japanDate {
+    color: #aab3bd;
+    font-size: 14px;
+}
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+.card {
+    background: #191e25;
+    border: 1px solid #2a313a;
+    border-radius: 12px;
+    padding: 8px;
+    position: relative;
+    overflow: hidden;
+}
+.card.open {
+    border-color: #3d8c62;
+}
+.card.open::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: #45bd79;
+}
+.city {
+    font-size: 17px;
+    font-weight: 600;
+}
+.zone {
+    color: #8e99a5;
+    font-size: 12px;
+    margin-top: 3px;
+}
+.time {
+    font-size: clamp(36px, 5vw, 30px);
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 12px 0 6px;
+    font-variant-numeric: tabular-nums;
+}
+.date {
+    color: #aab3bd;
+    font-size: 13px;
+}
+.status {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.status.open { background: #173d29; color: #61d895; }
+.status.closed { background: #302328; color: #d99ba8; }
+.next {
+    margin-top: 11px;
+    color: #cbd3dc;
+    font-size: 24px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .2px;
+}
+
+
+.session {
+    margin-top: 16px;
+    background: #191e25;
+    border: 1px solid #2a313a;
+    border-radius: 12px;
+    padding: 8px 8px 8px;
+}
+.session-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.timeline {
+    position: relative;
+    height: 116px;
+    margin: 0 4px;
+}
+.track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 41px;
+    height: 32px;
+    border-radius: 6px;
+    background: #252b33;
+    border: 1px solid #303844;
+    overflow: hidden;
+}
+.bar {
+    position: absolute;
+    left: 0;
+    top: 41px;
+    width: 100%;
+    height: 32px;
+    border-radius: 6px;
+    opacity: .44;
+    pointer-events: none;
+    transition: opacity .2s;
+}
+.bar.tokyo { background: linear-gradient(to right, transparent 0 0); z-index: 1; }
+.bar.london { background: linear-gradient(to right, transparent 0 0); z-index: 2; }
+.bar.newyork { background: linear-gradient(to right, transparent 0 0); z-index: 3; }
+
+.session-markers {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+}
+.session-marker {
+    position: absolute;
+    top: 32px;
+    transform: translateX(-50%);
+    font-size: 10px;
+    white-space: nowrap;
+    color: #dbe1e7;
+    background: rgba(16,19,24,.78);
+    border: 1px solid #3a424c;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+.session-marker.open-marker::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 1px;
+    height: 10px;
+    background: currentColor;
+    opacity: .7;
+}
+
+.now-line {
+    position: absolute;
+    top: 26px;
+    bottom: 18px;
+    width: 2px;
+    background: #f2f2f2;
+    box-shadow: 0 0 7px #fff;
+    z-index: 7;
+}
+.now-label {
+    position: absolute;
+    top: -20px;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #fff;
+    white-space: nowrap;
+}
+.hours {
+    display: flex;
+    justify-content: space-between;
+    color: #707b87;
+    font-size: 11px;
+    margin-top: 8px;
+}
+.session-legend {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+}
+.legend-item {
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #15191f;
+    border: 1px solid #2a313a;
+}
+.legend-main {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.legend-time {
+    margin-top: 3px;
+    color: #9da7b2;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+.dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+.dot.tokyo { background: #507ba6; }
+.dot.london { background: #9b77c5; }
+.dot.newyork { background: #c18661; }
+
+.note {
+    margin-top: 14px;
+    color: #7f8a96;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+    .cards { grid-template-columns: 1fr; }
+    .session-legend { grid-template-columns: 1fr; }
+    header { align-items: start; flex-direction: column; gap: 7px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div><h1>FX WORLD CLOCK</h1></div>
+        <div id="japanDate"></div>
+    </header>
+
+    <div class="cards">
+        <div class="card" id="tokyoCard">
+            <div class="city">🇯🇵 東京</div>
+            <div class="zone">Asia / Tokyo</div>
+            <div class="time" id="tokyoTime">--:--:--</div>
+            <div class="date" id="tokyoDate"></div>
+            <div class="status open" id="tokyoStatus">OPEN</div>
+            <div class="next" id="tokyoNext">--:--:--</div>
+        </div>
+
+        <div class="card" id="londonCard">
+            <div class="city">🇬🇧 ロンドン</div>
+            <div class="zone" id="londonZone">Europe / London</div>
+            <div class="time" id="londonTime">--:--:--</div>
+            <div class="date" id="londonDate"></div>
+            <div class="status" id="londonStatus">CLOSED</div>
+            <div class="next" id="londonNext">--:--:--</div>
+        </div>
+
+        <div class="card" id="newyorkCard">
+            <div class="city">🇺🇸 ニューヨーク</div>
+            <div class="zone">America / New York</div>
+            <div class="time" id="newyorkTime">--:--:--</div>
+            <div class="date" id="newyorkDate"></div>
+            <div class="status" id="newyorkStatus">CLOSED</div>
+            <div class="next" id="newyorkNext">--:--:--</div>
+        </div>
+    </div>
+
+    <div class="session">
+        <div class="session-title">FX セッション　｜　日本時間 24時間表示</div>
+        <div class="timeline" id="timeline">
+            <div class="track"></div>
+            <div class="bar tokyo" id="tokyoBar"></div>
+            <div class="bar london" id="londonBar"></div>
+            <div class="bar newyork" id="newyorkBar"></div>
+
+            <div class="session-markers">
+                <div class="session-marker open-marker" id="tokyoOpenMarker">09:00</div>
+                <div class="session-marker open-marker" id="londonOpenMarker">--:--</div>
+                <div class="session-marker open-marker" id="newyorkOpenMarker">--:--</div>
+            </div>
+
+            <div class="now-line" id="nowLine">
+                <div class="now-label">NOW</div>
+            </div>
+        </div>
+        <div class="hours">
+            <span>00</span><span>04</span><span>08</span><span>12</span>
+            <span>16</span><span>20</span><span>24</span>
+        </div>
+
+        <div class="session-legend">
+            <div class="legend-item">
+                <div class="legend-main"><span class="dot tokyo"></span>🇯🇵 TOKYO</div>
+                <div class="legend-time" id="tokyoSessionTime">09:00 - 18:00</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-main"><span class="dot london"></span>🇬🇧 LONDON</div>
+                <div class="legend-time" id="londonSessionTime">--:-- - --:--</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-main"><span class="dot newyork"></span>🇺🇸 NEW YORK</div>
+                <div class="legend-time" id="newyorkSessionTime">--:-- - --:--</div>
+            </div>
+        </div>
+
+        <div class="note">
+            ※ ロンドン・ニューヨークの夏時間／冬時間はブラウザのタイムゾーン情報から自動判定。<br>
+            英国と米国で切替日が異なる期間にも対応します。色の重なりがセッションの重複時間です。
+        </div>
+    </div>
+</div>
+
+<script>
+const zones = {
+    tokyo:   "Asia/Tokyo",
+    london:  "Europe/London",
+    newyork: "America/New_York"
+};
+
+const sessions = [
+    { key: "tokyo",   name: "東京",     zone: zones.tokyo,   open: 9, close: 18, color: "#507ba6" },
+    { key: "london",  name: "ロンドン", zone: zones.london,  open: 8, close: 17, color: "#9b77c5" },
+    { key: "newyork", name: "NY",       zone: zones.newyork, open: 8, close: 17, color: "#c18661" }
+];
+
+function parts(date, timeZone) {
+    const p = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+    }).formatToParts(date);
+
+    const o = {};
+    p.forEach(x => o[x.type] = x.value);
+    if (o.hour === "24") o.hour = "00";
+    return o;
+}
+
+function fmtTime(date, zone) {
+    const p = parts(date, zone);
+    return `${p.hour}:${p.minute}:${p.second}`;
+}
+
+function fmtDate(date, zone) {
+    const p = parts(date, zone);
+    return `${p.year}/${p.month}/${p.day}`;
+}
+
+function zoneName(date, zone) {
+    return new Intl.DateTimeFormat("en-US", {
+        timeZone: zone,
+        timeZoneName: "short"
+    }).formatToParts(date).find(x => x.type === "timeZoneName").value;
+}
+
+function localDateString(date, zone) {
+    const p = parts(date, zone);
+    return `${p.year}-${p.month}-${p.day}`;
+}
+
+function getUtcMillisForLocal(zone, y, m, d, hour, minute) {
+    let guess = Date.UTC(y, m - 1, d, hour, minute, 0);
+    for (let i = 0; i < 6; i++) {
+        const p = parts(new Date(guess), zone);
+        const actual = Date.UTC(
+            Number(p.year), Number(p.month) - 1, Number(p.day),
+            Number(p.hour), Number(p.minute), Number(p.second)
+        );
+        const target = Date.UTC(y, m - 1, d, hour, minute, 0);
+        const delta = target - actual;
+        guess += delta;
+        if (delta === 0) break;
+    }
+    return guess;
+}
+
+function addDays(y, m, d, amount) {
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + amount);
+    return { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate() };
+}
+
+function isWeekday(date, zone) {
+    const p = parts(date, zone);
+    const test = new Date(Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day)));
+    const day = test.getUTCDay();
+    return day >= 1 && day <= 5;
+}
+
+function isOpen(date, zone, openHour, closeHour) {
+    if (!isWeekday(date, zone)) return false;
+    const p = parts(date, zone);
+    const minutes = Number(p.hour) * 60 + Number(p.minute) + Number(p.second) / 60;
+    return minutes >= openHour * 60 && minutes < closeHour * 60;
+}
+
+function setStatus(cardId, statusId, open) {
+    const card = document.getElementById(cardId);
+    const el = document.getElementById(statusId);
+    el.textContent = open ? "OPEN" : "CLOSED";
+    el.className = "status " + (open ? "open" : "closed");
+    card.classList.toggle("open", open);
+}
+
+function jpDayBounds(date) {
+    const jp = parts(date, zones.tokyo);
+    const midnight = getUtcMillisForLocal(zones.tokyo, Number(jp.year), Number(jp.month), Number(jp.day), 0, 0);
+    const tomorrow = addDays(Number(jp.year), Number(jp.month), Number(jp.day), 1);
+    const nextMidnight = getUtcMillisForLocal(zones.tokyo, tomorrow.y, tomorrow.m, tomorrow.d, 0, 0);
+    return { start: midnight, end: nextMidnight };
+}
+
+function dayKey(y, m, d) {
+    return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+
+function localDayAtOffset(date, zone, offset) {
+    const p = parts(date, zone);
+    const d = addDays(Number(p.year), Number(p.month), Number(p.day), offset);
+    return d;
+}
+
+function sessionSegmentsForJpDay(session, now) {
+    const bounds = jpDayBounds(now);
+    const jp = parts(now, zones.tokyo);
+    const base = { y: Number(jp.year), m: Number(jp.month), d: Number(jp.day) };
+    const candidates = [-1, 0, 1, 2].map(offset => addDays(base.y, base.m, base.d, offset));
+    const segments = [];
+
+    for (const day of candidates) {
+        const openMs = getUtcMillisForLocal(session.zone, day.y, day.m, day.d, session.open, 0);
+        const closeMs = getUtcMillisForLocal(session.zone, day.y, day.m, day.d, session.close, 0);
+        const weekendCheck = new Date(Date.UTC(day.y, day.m - 1, day.d));
+        const dow = weekendCheck.getUTCDay();
+        if (dow === 0 || dow === 6) continue;
+
+        const start = Math.max(openMs, bounds.start);
+        const end = Math.min(closeMs, bounds.end);
+        if (end > start) {
+            const a = (start - bounds.start) / (bounds.end - bounds.start) * 100;
+            const b = (end - bounds.start) / (bounds.end - bounds.start) * 100;
+            segments.push({ a, b, startMs: start, endMs: end });
+        }
+    }
+    return segments;
+}
+
+function setBarGradient(id, session, now) {
+    const bar = document.getElementById(id);
+    const segs = sessionSegmentsForJpDay(session, now);
+    const color = session.color;
+    const stops = [];
+    let last = 0;
+    for (const s of segs.sort((x,y) => x.a - y.a)) {
+        if (s.a > last) stops.push(`transparent ${last}% ${s.a}%`);
+        stops.push(`${color} ${s.a}% ${s.b}%`);
+        last = s.b;
+    }
+    if (last < 100) stops.push(`transparent ${last}% 100%`);
+    if (!stops.length) stops.push("transparent 0 100%");
+    bar.style.background = `linear-gradient(to right, ${stops.join(", ")})`;
+}
+
+function jpMinutes(date) {
+    const p = parts(date, zones.tokyo);
+    return Number(p.hour) * 60 + Number(p.minute) + Number(p.second) / 60;
+}
+
+function jpClockLabel(ms) {
+    return fmtTime(new Date(ms), zones.tokyo).slice(0, 5);
+}
+
+function updateSessionLegend(now) {
+    for (const s of sessions) {
+        const segs = sessionSegmentsForJpDay(s, now);
+        const timeEl = document.getElementById(`${s.key}SessionTime`);
+        const openMarker = document.getElementById(`${s.key}OpenMarker`);
+        const color = s.color;
+
+        if (segs.length) {
+            const first = segs[0];
+            const labels = [];
+            if (first.startMs >= jpDayBounds(now).start) labels.push(jpClockLabel(first.startMs));
+            if (first.endMs <= jpDayBounds(now).end) labels.push(jpClockLabel(first.endMs));
+            timeEl.textContent = labels.length === 2 ? `${labels[0]} - ${labels[1]}` : `${labels.join(" - ")} (日跨ぎ)`;
+        } else {
+            // 現地時間を日本時間へ変換した「当日の通常枠」を表示
+            const jp = parts(now, zones.tokyo);
+            const day = { y: Number(jp.year), m: Number(jp.month), d: Number(jp.day) };
+            const openMs = getUtcMillisForLocal(s.zone, day.y, day.m, day.d, s.open, 0);
+            const closeMs = getUtcMillisForLocal(s.zone, day.y, day.m, day.d, s.close, 0);
+            timeEl.textContent = `${jpClockLabel(openMs)} - ${jpClockLabel(closeMs)}`;
+        }
+
+        // オープン位置は「その日に日本時間で発生する最初のオープン」を表示
+        const jp = parts(now, zones.tokyo);
+        const base = { y: Number(jp.year), m: Number(jp.month), d: Number(jp.day) };
+        let openMs = null;
+        for (const offset of [-1, 0, 1]) {
+            const day = addDays(base.y, base.m, base.d, offset);
+            const dt = new Date(getUtcMillisForLocal(s.zone, day.y, day.m, day.d, s.open, 0));
+            const p = parts(dt, zones.tokyo);
+            const candidate = getUtcMillisForLocal(s.zone, day.y, day.m, day.d, s.open, 0);
+            if (Number(p.year) === base.y && Number(p.month) === base.m && Number(p.day) === base.d) {
+                openMs = candidate;
+                break;
+            }
+        }
+        if (openMs !== null) {
+            openMarker.textContent = jpClockLabel(openMs);
+            openMarker.style.left = `${(jpMinutes(new Date(openMs)) / 1440) * 100}%`;
+            openMarker.style.color = color;
+        } else {
+            openMarker.textContent = "";
+            openMarker.style.left = "-9999px";
+        }
+    }
+}
+
+function formatCountdown(diffMs) {
+    const totalSec = Math.max(0, Math.floor(diffMs / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const min = Math.floor((totalSec % 3600) / 60);
+    const sec = totalSec % 60;
+    return `${String(h).padStart(2,"0")}:${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+}
+
+function getNextTransition(session, now, currentlyOpen) {
+    const local = parts(now, session.zone);
+    const base = {
+        y: Number(local.year),
+        m: Number(local.month),
+        d: Number(local.day)
+    };
+
+    // 現地時間ベースで次の OPEN / CLOSE を探す。
+    // 金曜終了後～月曜開始前の週末も最大7日先まで追跡する。
+    for (let offset = 0; offset <= 7; offset++) {
+        const day = addDays(base.y, base.m, base.d, offset);
+        const testDay = new Date(Date.UTC(day.y, day.m - 1, day.d));
+        const dow = testDay.getUTCDay();
+        if (dow === 0 || dow === 6) continue;
+
+        const openMs = getUtcMillisForLocal(session.zone, day.y, day.m, day.d, session.open, 0);
+        const closeMs = getUtcMillisForLocal(session.zone, day.y, day.m, day.d, session.close, 0);
+
+        if (currentlyOpen) {
+            if (closeMs > now.getTime()) {
+                return { type: "CLOSED", target: closeMs, diff: closeMs - now.getTime() };
+            }
+        } else {
+            if (openMs > now.getTime()) {
+                return { type: "OPEN", target: openMs, diff: openMs - now.getTime() };
+            }
+        }
+    }
+
+    return null;
+}
+
+
+function update() {
+    const now = new Date();
+
+    document.getElementById("tokyoTime").textContent = fmtTime(now, zones.tokyo);
+    document.getElementById("londonTime").textContent = fmtTime(now, zones.london);
+    document.getElementById("newyorkTime").textContent = fmtTime(now, zones.newyork);
+
+    document.getElementById("tokyoDate").textContent = fmtDate(now, zones.tokyo);
+    document.getElementById("londonDate").textContent = fmtDate(now, zones.london);
+    document.getElementById("newyorkDate").textContent = fmtDate(now, zones.newyork);
+
+    document.getElementById("japanDate").textContent =
+        new Intl.DateTimeFormat("ja-JP", { timeZone: zones.tokyo, dateStyle: "full" }).format(now);
+
+    document.getElementById("londonZone").textContent =
+        "Europe / London  •  " + zoneName(now, zones.london);
+
+    const tokyoOpen = isOpen(now, zones.tokyo, 9, 18);
+    const londonOpen = isOpen(now, zones.london, 8, 17);
+    const nyOpen = isOpen(now, zones.newyork, 8, 17);
+
+    setStatus("tokyoCard", "tokyoStatus", tokyoOpen);
+    setStatus("londonCard", "londonStatus", londonOpen);
+    setStatus("newyorkCard", "newyorkStatus", nyOpen);
+
+    setBarGradient("tokyoBar", sessions[0], now);
+    setBarGradient("londonBar", sessions[1], now);
+    setBarGradient("newyorkBar", sessions[2], now);
+    updateSessionLegend(now);
+
+    const minuteOfDay = jpMinutes(now);
+    document.getElementById("nowLine").style.left = (minuteOfDay / 1440 * 100) + "%";
+
+    const openStates = [tokyoOpen, londonOpen, nyOpen];
+    sessions.forEach((session, index) => {
+        const nextEl = document.getElementById(`${session.key}Next`);
+        const transition = getNextTransition(session, now, openStates[index]);
+
+        if (transition) {
+            nextEl.textContent = `${transition.type}まで　${formatCountdown(transition.diff)}`;
+        } else {
+            nextEl.textContent = "--:--:--";
+        }
+    });
+}
+
+update();
+setInterval(update, 250);
+</script>
+</body>
+</html>
