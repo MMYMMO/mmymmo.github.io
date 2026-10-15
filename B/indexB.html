@@ -90,6 +90,8 @@ html,body{
 }
 
 .video-cell:hover .info{display:block}
+.video-cell:has(iframe) { outline-offset:-3px; }
+.video-cell.dragging{outline:3px dashed #fff; outline-offset:-5px}
 
 @media (max-width:700px){
   .info{font-size:10px}
@@ -181,6 +183,102 @@ function prev(type) {
 
 ['B','C'].forEach(update);
 
+/* YouTube URLを動画枠へドロップしたら、その動画を表示 */
+function extractYouTubeId(value) {
+  if (!value) return null;
+  const text = value.trim();
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    return null;
+  }
+
+  const host = url.hostname.toLowerCase().replace(/^www\./, '');
+  if (host === 'youtu.be') {
+    return url.pathname.split('/').filter(Boolean)[0] || null;
+  }
+  if (!['youtube.com', 'm.youtube.com', 'music.youtube.com',
+        'youtube-nocookie.com'].includes(host)) {
+    return null;
+  }
+
+  if (url.pathname === '/watch') return url.searchParams.get('v');
+  const parts = url.pathname.split('/').filter(Boolean);
+  if (['embed', 'shorts', 'live', 'v'].includes(parts[0])) {
+    return parts[1] || null;
+  }
+  return null;
+}
+
+function showDroppedVideo(type, videoId) {
+  if (!videoId) return;
+  const url =
+    `https://www.youtube.com/embed/${videoId}`
+    + `?autoplay=1&mute=1&loop=1&playlist=${videoId}`
+    + `&controls=0&rel=0&playsinline=1`;
+  document.getElementById(`frame${type}`).src = url;
+  const info = document.getElementById(`info${type}`);
+  info.textContent = `${type} : ${videoId}（ドロップ）`;
+  info.style.display = 'block';
+}
+
+/*
+ * アドレスバーからのドロップを確実に捕まえるため、document の
+ * capture フェーズで先に処理する。受け取ったURLのドロップによる
+ * 通常ページへの移動を preventDefault() で止める。
+ */
+document.addEventListener('dragover', event => {
+  const cell = event.target.closest && event.target.closest('.video-cell');
+  if (!cell) return;
+  event.preventDefault();
+  event.stopPropagation();
+  cell.classList.add('dragging');
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+}, true);
+
+document.addEventListener('dragleave', event => {
+  const cell = event.target.closest && event.target.closest('.video-cell');
+  if (cell && !cell.contains(event.relatedTarget)) {
+    cell.classList.remove('dragging');
+  }
+}, true);
+
+document.addEventListener('drop', event => {
+  const cell = event.target.closest && event.target.closest('.video-cell');
+  if (!cell) return;
+
+  // URLをページ遷移として開かせず、動画枠へのドロップとして処理
+  event.preventDefault();
+  event.stopPropagation();
+  cell.classList.remove('dragging');
+
+  const type = cell.querySelector('iframe').id === 'frameB' ? 'B' : 'C';
+  const data = event.dataTransfer;
+  const candidates = data ? [
+    data.getData('text/uri-list'),
+    data.getData('text/plain'),
+    data.getData('URL')
+  ] : [];
+
+  for (const candidate of candidates) {
+    const line = candidate.split(/\r?\n/).find(s => s.trim() && !s.trim().startsWith('#'));
+    const videoId = extractYouTubeId(line || '');
+    if (videoId) {
+      showDroppedVideo(type, videoId);
+      return;
+    }
+  }
+
+  const info = document.getElementById(`info${type}`);
+  info.textContent = `${type} : URLを取得できませんでした。YouTubeのアドレスバーから動画枠へドロップしてください`;
+  info.style.display = 'block';
+}, true);
+
+// 枠をまたいだときにドラッグ中の表示を消すための補助処理
+document.querySelectorAll('.video-cell').forEach(cell => {
+  cell.addEventListener('dragend', () => cell.classList.remove('dragging'));
+});
 /* 任意の自動切替 */
 if (CHANGE_INTERVAL > 0) {
   setInterval(() => {
