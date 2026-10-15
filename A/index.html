@@ -1,1 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 
+<script src="js/playlist.js"></script>
+<script>
+/* ==========================================
+   設定
+========================================== */
+/*
+  0 なら自動切替しない
+  15000 なら15秒ごと
+*/
+const CHANGE_INTERVAL = 0;
+
+</script>
+
+<style>
+
+body{
+  margin:0;
+  background:#000;
+  overflow:hidden;
+  font-family:sans-serif;
+}
+
+/* =======================
+   2x2 グリッド
+======================= */
+
+.container{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  grid-template-rows:repeat(2,1fr);
+  height:100vh;
+}
+
+.cell{
+  position:relative;
+  overflow:hidden;
+  background:#111;
+}
+
+/* =======================
+   YouTube iframe
+======================= */
+
+iframe{
+  width:100%;
+  height:100%;
+  border:none;
+  pointer-events:none;
+}
+
+/* =======================
+   情報表示
+======================= */
+
+.info{
+  position:absolute;
+  left:5px;
+  top:5px;
+  background:rgba(0,0,0,0.6);
+  color:#fff;
+  padding:4px 8px;
+  font-size:12px;
+  display:none;
+  z-index:10;
+}
+
+.cell:hover .info{
+  display:block;
+}
+
+/* =======================
+   上半分 / 下半分クリック
+=======================
+
+.clickTop,
+.clickBottom{
+  position:absolute;
+  left:0;
+  width:100%;
+  z-index:20;
+  cursor:pointer;
+}
+
+.clickTop{
+  top:0;
+  height:50%;
+}
+
+.clickBottom{
+  bottom:0;
+  height:50%;
+}
+ */
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- A -->
+  <div class="cell">
+
+    <iframe id="frameA" allow="autoplay"></iframe>
+
+    <div class="clickTop"
+         onclick="prev('A')"></div>
+
+    <div class="clickBottom"
+         onclick="next('A')"></div>
+
+    <div class="info" id="infoA"></div>
+
+  </div>
+
+  <!-- B -->
+  <div class="cell">
+
+    <iframe id="frameB" allow="autoplay"></iframe>
+
+    <div class="clickTop"
+         onclick="prev('B')"></div>
+
+    <div class="clickBottom"
+         onclick="next('B')"></div>
+
+    <div class="info" id="infoB"></div>
+
+  </div>
+
+  <!-- C -->
+  <div class="cell">
+
+    <iframe id="frameC" allow="autoplay"></iframe>
+
+    <div class="clickTop"
+         onclick="prev('C')"></div>
+
+    <div class="clickBottom"
+         onclick="next('C')"></div>
+
+    <div class="info" id="infoC"></div>
+
+  </div>
+
+  <!-- D -->
+  <div class="cell">
+
+    <iframe id="frameD" allow="autoplay"></iframe>
+
+    <div class="clickTop"
+         onclick="prev('D')"></div>
+
+    <div class="clickBottom"
+         onclick="next('D')"></div>
+
+    <div class="info" id="infoD"></div>
+
+  </div>
+
+</div>
+
+<script>
+/* ==========================================
+   現在位置
+========================================== */
+
+let index = {
+  A:0,
+  B:0,
+  C:0,
+  D:0
+};
+
+/* ==========================================
+   ランダム初期化
+========================================== */
+
+["A","B","C","D"].forEach(type => {
+
+  index[type] =
+    Math.floor(Math.random() *
+    playlist.length);
+
+});
+
+/* ==========================================
+   iframe 更新
+========================================== */
+
+function update(type){
+
+  const videoId = playlist[index[type]];
+
+  const controls = 0;
+
+  /* 全画面デフォルト音声OFF */
+  const mute = 1;
+
+  const url =
+    `https://www.youtube.com/embed/${videoId}`
+    + `?autoplay=1`
+    + `&mute=${mute}`
+    + `&loop=1`
+    + `&playlist=${videoId}`
+    + `&controls=${controls}`
+    + `&rel=0`
+    + `&playsinline=1`;
+
+  document.getElementById(
+    "frame"+type).src = url;
+
+  document.getElementById(
+    "info"+type).textContent =
+    `${type} : ${videoId}`;
+
+}
+
+/* ==========================================
+   次
+========================================== */
+
+function next(type){
+
+  index[type]++;
+
+  if(index[type] >= playlist.length){
+    index[type] = 0;
+  }
+
+  update(type);
+
+}
+
+/* ==========================================
+   前
+========================================== */
+
+function prev(type){
+
+  index[type]--;
+
+  if(index[type] < 0){
+    index[type] =
+      playlist.length - 1;
+  }
+
+  update(type);
+
+}
+
+/* ==========================================
+   初期化
+========================================== */
+
+["A","B","C","D"].forEach(type => {
+  update(type);
+});
+
+/* ==========================================
+   一定時間ごとランダム変更
+========================================== */
+
+if(CHANGE_INTERVAL > 0){
+
+  setInterval(() => {
+
+    const types = ["A","B","C","D"];
+
+    const type =
+      types[Math.floor(Math.random()*4)];
+
+    index[type] =
+      Math.floor(Math.random() *
+      playlist.length);
+
+    update(type);
+
+  }, CHANGE_INTERVAL);
+
+}
+
+/* ==========================================
+   マウスオーバー時だけ操作可能
+========================================== */
+
+document.querySelectorAll(".cell")
+.forEach(cell => {
+
+  cell.addEventListener("mouseenter", () => {
+
+    const iframe =
+      cell.querySelector("iframe");
+
+    iframe.style.pointerEvents = "auto";
+
+  });
+
+  cell.addEventListener("mouseleave", () => {
+
+    const iframe =
+      cell.querySelector("iframe");
+
+    iframe.style.pointerEvents = "none";
+
+  });
+
+});
+
+</script>
+
+</body>
+</html>
